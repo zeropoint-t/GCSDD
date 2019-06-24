@@ -1,0 +1,14 @@
+set grid xtics ytics
+
+set logscale y
+
+set xrange[0:4500]
+
+set ylabel "runtime (seconds)"
+set xlabel "buffer size"
+
+plot \
+"unix_result.dat" u 2:1 t "Unix Syscalls" w lines,\
+"c_std_result.dat" u 2:1 t "C Standard I/O" w lines
+
+reset session

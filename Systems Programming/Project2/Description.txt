@@ -1,0 +1,97 @@
+Assignment 2: Sleeping Barbers
+Original author: Munehiro Fukuda
+
+Revisions 2019: Morris Bernstein
+
+Background
+The Sleeping Barbers problem is a "toy problem" that illustrates some of the complexities of concurrency. The scene is a barber shop with one or more barbers and zero or more chairs in the waiting area. The barbers sleep in their chairs until a customer arrives to wake up one of the barbers.
+
+The awoken barber cuts the customer's hair. Meanwhile other customers may arrive. If all the barbers are busy and there's an available chair in the waiting room, the arriving customer takes a number and sits in one of the waiting-room chairs.
+
+If all the chairs are full, an arriving customer just leaves without taking a number.
+
+When a barber finishes with the customer, the customer gives the barber payment and the barber collects the payment. The customer leaves satisfied. The barber then services the next customer if one is waiting. Otherwise, the barber goes back to sleep in his or her chair.
+
+At the end of the simulation, the shop closes. No new customers arrive, but the barbers will continue to provide service to any waiting customers, until the last customer leaves and all the barbers have gone back to sleep.
+
+You will write a C++ program using pthreads that simulates the Sleeping Barbers problem. The program will take six parameters in its argument vector: number of barbers, numbers of chairs in the waiting room, barber's average service time (in milliseconds1), standard deviation in service time, average customer arrival interval, and duration of the simulation (seconds).
+
+Since there are so many parameters, you may find this RUN script more readable for invoking the barbers program.
+
+Run the simulation for 5 minutes with average service time of 1200 milliseconds and standard deviation of 200ms. Assuming there are 3 barbers and customers arrive on average every 400ms, determine approximately how many waiting-room chairs are required to avoid turning away customers.
+
+The actors in the system are the Shop, the Barbers, and the Customers,. The Barbers and the Shop persist for the duration of the simulation. The Customers are ephemeral.
+
+The actors will print messages to trace events during the simulation.
+
+The shop:
+
+the shop opens
+the shop closes
+Barbers:
+
+barber m arrives for work (optional)
+barber m takes a nap
+barber m wakes up
+barber m gives customer n a haircut
+barber m finishes customer n's haircut
+barber m accepts payment from customer n
+barber m calls customer n
+barber m leaves for home (optional)
+Customers:
+
+customer n arrives
+customer n leaves without getting haircut
+customer n wakes barber m
+customer n sits in barber m's chair
+customer n takes a seat in the waiting room
+customer n gets up and proffers payment to barber m
+customer n leaves statisfied
+Actors
+While the solution will be implemented in C++ using the pthreads library, the concept of actors can simplify modeling.
+
+The essential idea is that actors are objects on steroids. Each instance corresponds to a separate thread and does whatever it does concurrently with other actors. Actors communicate by sending messages to each other.
+
+For each kind of actor, create a C++ class that has a run method. The thread will call run.
+
+Messages will be simulated by having all other methods called from other threads. The method bodies will apply any necessary low-level concurrency control and set member variables in the object that the running thread will pick up.
+
+Class Design
+The Shop class should hold global state, including the list of sleeping barbers and the queue of waiting customers (at all times, at least one of these lists should be empty). The action of the shop will be to instantiate customers at random intervals.
+
+The customer should check the shop for a sleeping barber or empty chair. This needs to be an atomic operation because we don't want a race condition between the barber finishing with a prior customer and going back to sleep, while the customer sees the barber is busy and takes a seat in the waiting room. The Shop should hold the mutex controling the customer's selection of barber or waiting-room chair.
+
+A skeleton program barbers-skel.cc has been provided. Use it, or don't use it as you see fit.
+
+Notes & Hints
+When the shop closes, no new customers arrive, but the barbers will continue service until there are no more waiting customers.
+
+Use std::normal_distribution to compute the barber's service time for each customer. Clip the minimum service time to 80% of the barber's average service time.
+
+Use std::poisson_distribution to compute the arrivals of customers.
+
+The program will be creating short-lived customer threads, so it's important not to leak resources. One way is to add a Reaper or Undertaker actor that receives messages from expiring Customer threads. Alternatively, you can fold that functionality into the Shop thread.
+
+A third, simpler way is to create the customer threads in detached mode and have the thread start function delete the actor.
+
+class Actor{/*...*/};
+
+void run(void *arg) {
+  Actor *actor = reinterpret_cast<Actor *>(arg);
+  actor->run();
+  delete actor;
+  return nullptr;
+}
+
+
+main() {
+  // Create thread in detached mode.
+}
+Use usleep for microsecond-level pauses to simulate thread activity (i.e. barber cutting hair). It's often helpful to include units in the variable name, so you don't get confused between seconds, milliseconds, microseconds, and nanoseconds.
+
+The entire program is small enough to fit into a single source file, but you may prefer dividing it among several files. Either way will be acceptable.
+
+Don't forget to include your recommendation for waiting-room size in the README file.
+
+Footnotes
+1  Very fast barber.

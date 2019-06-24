@@ -1,0 +1,45 @@
+Assignment 1: Convex Hull
+Original author: Munehiro Fukuda
+
+Revisions 2019: Morris Bernstein
+
+Background
+A simple polygon is defined to be convex if the line segment between any pair of points inside the polygon is fully contained by the polygon. Informally, the polygon is convex if it matches the “rubber band” placed around its vertex points. The convex hull of a set of points (in the plane) is the smallest convex polygon that contains all the points.
+
+Finding the convex hull is a seminal problem in the field of computational geometry There are numerous applications, including computer graphics and image analysis, robot motion planning (path finding), game theory, epidemiology, compilers, etc.
+
+The Graham scan algorithm solves the problem in two steps by first sorting the points with respect to the angle each point makes with lowest point. Then it does a linear-time scan of the sorted points to determine whether each point makes a right or left turn with respect to the next point. The cost of sorting, O(n log n)1, dominates the computational complexity of the algorithm.
+
+ Graham scan animation
+
+Another algorithm uses a divide-and-conquer approach. It takes advantage of the fact that a convex hull is represented by an ordered list of points to merge a pair of hulls in linear time. By repeatedly dividing the points in half to get smaller subsets, we can get a quicksort-like O(n log n) algorithm.
+
+The merge operation works by finding the polygon with the lowest point and dividing the other polygon into upper and lower chains. The points of the lower chain cannot be in the merged hull and can be immediately discarded. The upper chain is necessarily sorted with respect to the lowest point of the first polygon, so its points can be merged with the first polygon in linear time. A linear-time Graham scan then finds the hull of the merged set of points.
+
+Parallel Convex Hull
+You have been given a C++ program that benchmarks the Graham scan and divide-and-conquer algorithms. Your task is to modify the divide-and-conquer implementation to take advantage of the multi-core architecture of modern machines.
+
+Your strategy will be to fork your process and let the parent and child processes each process half the set. The child should then pipe its results back to the parent process. The parent will then read the results from the child and perform the merge.
+
+The parent process should wait for the child to complete so that the parent can check the exit status of the child process. If there are any failures, the program should exit with a non-zero exit status (indicating failure). If the program fails for any reason, fix the problem (if it isn't transient) and rerun the experiment.
+
+To make it interesting, your test data should contain 10 million points (but do not include the test data in the hand-in materials).
+
+Determine the performance of the Graham scan algorithm versus concurrent d&c for 1, 2, 4, 8, and 16 "processors". Use the README file to report your results.
+
+Notes & Hints
+While interesting, you don't really need to understand the convex hull algorithm to complete the assignment. Your instructor's solution is only 55 lines, implemented in a separate #include file2. You don't need to modify any of the provided source. Just create the required #include files and compile with the right flags.
+
+You can use the known-good Graham and non-concurrent d&c solutions to cross-check the correctness of your implementation. A script to automate your testing is desirable. Otherwise, how are you going to convince your instructor that your solution is correct?
+
+Report performance for your program compiled with optimization levels -O0 and -O3. Normally, since we are concerned with performance, we would compile with maximum optimizations only, but this is an opportunity to see how much code improvement the optimizer produces.
+
+Use appropriate preprocessor definitions using the -D flag on the compile command.
+
+Don't forget to include your BUILD and RUN scripts.
+
+The tarball includes a pair of Python utility scripts. generate_data.py will generate random input data. plot.py can be used to generate svg image files that illustrate the data.
+
+Footnotes
+1  ... where n is the number of points in the input set. There exist output sensitive algorithms that perform in O(n log h) where h is the number of points in the hull. Generally, h << n.
+2  The code uses .inc instead of .h because it's not really a header file. .h and .inc are just conventions.

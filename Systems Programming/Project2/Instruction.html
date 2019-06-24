@@ -1,0 +1,373 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0088)http://courses.washington.edu/css503/2019q2/assignments/assignment-02/assignment-02.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CSS 503A (Spring 2019): Systems Programming</title>
+  
+  <meta http-equiv="last-modified" content="2019-06-03T17:13:39.960867">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="copyright" content="© 2013-2019 Systems Deployment, LLC">
+  <link rel="stylesheet" type="text/css" href="./Instruction_files/css503.css">
+  <link rel="icon" type="image/png" href="http://courses.washington.edu/css503/2019q2/assignments/assignment-02/systems-deployment-favicon.png">
+</head>
+
+<body>
+
+<a name="top"></a>
+
+  <div class="logo">
+    <a href="http://www.uwb.edu/css" target="_blank">
+      <img src="./Instruction_files/csslogo.jpg" alt="UWB and UW Seal" title="University of Washington | Bothell">
+    </a>
+  </div>
+  <hr class="logo">
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+
+<h1>Assignment 2: Sleeping Barbers</h1>
+
+<p>
+  Original author: Munehiro Fukuda
+</p>
+<p>
+  Revisions 2019: Morris Bernstein
+</p>
+
+
+<h2>Background</h2>
+
+<p>
+  The Sleeping Barbers problem is a "toy problem" that illustrates
+  some of the complexities of concurrency.  The scene is a barber shop
+  with one or more barbers and zero or more chairs in the waiting
+  area.  The barbers sleep in their chairs until a customer arrives to
+  wake up one of the barbers.
+</p>
+
+<p>
+  The awoken barber cuts the customer's hair.  Meanwhile other
+  customers may arrive.  If all the barbers are busy and there's an
+  available chair in the waiting room, the arriving customer takes
+  a number and sits in one of the waiting-room chairs.
+</p>
+
+<p>
+  If all the chairs are full, an arriving customer just leaves without
+  taking a number.
+</p>
+
+<p>
+  When a barber finishes with the customer, the customer gives the
+  barber payment and the barber collects the payment.  The customer
+  leaves satisfied.  The barber then services the next customer if one
+  is waiting.  Otherwise, the barber goes back to sleep in his or her
+  chair.
+</p>
+
+<p>
+  At the end of the simulation, the shop closes.  No new customers
+  arrive, but the barbers will continue to provide service to any
+  waiting customers, until the last customer leaves and all the
+  barbers have gone back to sleep.
+</p>
+
+<p>
+  You will write a C++ program using pthreads that simulates the
+  Sleeping Barbers problem.  The program will take six parameters in
+  its argument vector: number of barbers, numbers of chairs in the
+  waiting room, barber's average service time
+  (in
+  milliseconds<a name="text_1"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-02/assignment-02.html#footnote_1" class="footnote_link"><sup class="footnote">1</sup></a>),
+  standard deviation in service time,
+  average customer arrival interval,
+  and duration of the simulation (seconds).
+</p>
+
+<p>
+  Since there are so many parameters, you may find this
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-02/RUN" target="_blank">RUN</a>
+  script more readable for invoking the barbers program.
+</p>
+
+<p>
+  Run the simulation for 5 minutes with average service time of 1200
+  milliseconds and standard deviation of 200ms.  Assuming there are 3
+  barbers and customers arrive on average every 400ms, determine
+  approximately how many waiting-room chairs are required to avoid
+  turning away customers.
+</p>
+
+<p>
+  The actors in the system are the
+  <code>Shop</code>,
+  the
+  <code>Barber</code>s,
+  and the
+  <code>Customer</code>s,.
+  The
+  <code>Barber</code>s
+  and the
+  <code>Shop</code>
+  persist for the duration of the simulation.
+  The
+  <code>Customer</code>s
+  are
+  <em>ephemeral</em>.
+</p>
+
+<p>
+  The actors will print messages to trace events
+  during the simulation.
+</p>
+
+<p class="with_list">
+  The shop:
+</p>
+<p></p>
+<ul>
+  <li>
+    <code>the shop opens</code>
+  </li>
+  <li>
+    <code>the shop closes</code>
+  </li>
+</ul>
+
+<p class="with_list">
+  Barbers:
+</p>
+<ul>
+  <li>
+    <code>barber <em>m</em> arrives for work</code> (optional)
+  </li>
+  <li>
+    <code>barber <em>m</em> takes a nap</code>
+  </li>
+  <li>
+    <code>barber <em>m</em> wakes up</code>
+  </li>
+  <li>
+    <code>barber <em>m</em> gives customer <em>n</em> a haircut</code>
+  </li>
+  <li>
+    <code>barber <em>m</em> finishes customer <em>n</em>'s haircut</code>
+  </li>
+  <li>
+    <code>barber <em>m</em> accepts payment from customer <em>n</em></code>
+  </li>
+  <li>
+    <code>barber <em>m</em> calls customer <em>n</em></code>
+  </li>
+  <li>
+    <code>barber <em>m</em> leaves for home</code> (optional)
+  </li>
+</ul>
+
+<p class="with_list">
+  Customers:
+</p>
+<ul>
+  <li>
+    <code>customer <em>n</em> arrives</code>
+  </li>
+  <li>
+    <code>customer <em>n</em> leaves without getting haircut</code>
+  </li>
+  <li>
+    <code>customer <em>n</em> wakes barber <em>m</em></code>
+  </li>
+  <li>
+    <code>customer <em>n</em> sits in barber <em>m</em>'s chair</code>
+  </li>
+  <li>
+    <code>customer <em>n</em> takes a seat in the waiting room</code>
+  </li>
+  <li>
+    <code>customer <em>n</em> gets up and proffers payment to barber <em>m</em></code>
+  </li>
+  <li>
+    <code>customer <em>n</em> leaves statisfied</code>
+  </li>
+</ul>
+
+
+<h2>Actors</h2>
+
+<p>
+  While the solution will be implemented in C++ using the pthreads
+  library, the concept of actors can simplify modeling.
+</p>
+
+<p>
+  The essential idea is that actors are objects on steroids.  Each
+  instance corresponds to a separate thread and does whatever it does
+  concurrently with other actors.  Actors communicate by sending
+  <em>messages</em>
+  to each other.
+</p>
+
+<p>
+  For each kind of actor, create a C++ class that has a
+  <code>run</code>
+  method.  The thread will call
+  <code>run</code>.
+</p>
+
+<p>
+  Messages will be simulated by having all other methods called from
+  other threads. The method bodies will apply any necessary low-level
+  concurrency control and set member variables in the object that the
+  running thread will pick up.
+</p>
+
+
+<h2>Class Design</h2>
+
+<p>
+  The
+  <code>Shop</code>
+  class should hold global state, including the list of sleeping
+  barbers and the queue of waiting customers (at all times, at least
+  one of these lists should be empty).
+  The action of the shop will be to instantiate customers at random
+  intervals.
+</p>
+
+<p>
+  The customer should check the shop for a sleeping barber or empty
+  chair.
+  This needs to be an atomic operation because we don't want a race
+  condition between the barber finishing with a prior customer and
+  going back to sleep, while the customer sees the barber is busy and
+  takes a seat in the waiting room.
+  The
+  <code>Shop</code>
+  should hold the mutex controling the customer's selection of barber
+  or waiting-room chair.
+</p>
+
+<p>
+  A skeleton program
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-02/barbers-skel.cc" target="_blank">barbers-skel.cc</a>
+  has been provided.  Use it, or don't use it as you see fit.
+</p>
+
+
+<h2>Notes &amp; Hints</h2>
+
+<p>
+  When the shop closes, no new customers arrive, but the barbers will
+  continue service until there are no more waiting customers.
+</p>
+
+<p>
+  Use
+  <code>std::normal_distribution</code>
+  to compute the barber's service time for each customer.  Clip the
+  minimum service time to 80% of the barber's average service time.
+</p>
+
+<p>
+  Use
+  <code>std::poisson_distribution</code>
+  to compute the arrivals of customers.
+</p>
+
+<p>
+  The program will be creating short-lived customer threads, so it's
+  important not to leak resources.  One way is to add a
+  <code>Reaper</code>
+  or
+  <code>Undertaker</code>
+  actor that receives messages from expiring
+  <code>Customer</code>
+  threads.
+  Alternatively, you can fold that functionality into the
+  <code>Shop</code>
+  thread.
+</p>
+
+<p>
+  A third, simpler way is to create the customer threads in detached
+  mode and have the thread start function delete the actor.
+</p>
+
+<div class="codebox"><code><pre>class Actor{/*...*/};
+
+void run(void *arg) {
+  Actor *actor = reinterpret_cast&lt;Actor *&gt;(arg);
+  actor-&gt;run();
+  delete actor;
+  return nullptr;
+}
+
+
+main() {
+  // Create thread in detached mode.
+}
+</pre></code></div>
+
+<p>
+  Use
+  <code>usleep</code>
+  for microsecond-level pauses to simulate thread activity
+  (i.e. barber cutting hair).  It's often helpful to include units in
+  the variable name, so you don't get confused between seconds,
+  milliseconds, microseconds, and nanoseconds.
+</p>
+
+<p>
+  The entire program is small enough to fit into a single source
+  file, but you may prefer dividing it among several files.  Either
+  way will be acceptable.
+</p>
+
+<p>
+  Don't forget to include your recommendation for waiting-room size in
+  the README file.
+</p>
+
+
+
+<h2>Footnotes</h2>
+
+<ul class="footnote_list">
+
+<li class="footnote"><a name="footnote_1"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-02/assignment-02.html#text_1">1</a>&nbsp;&nbsp;Very fast barber.</li>
+</ul>
+
+
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+</body></html>

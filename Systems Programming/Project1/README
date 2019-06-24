@@ -1,0 +1,16 @@
+Performance Comparision
+Optimization level:-O0 
+    Pure Graham scan:                   13.826702 seconds
+    concurrent d&c for 1 processor      13.599837 seconds
+    concurrent d&c for 2 processors     6.839762 seconds
+    concurrent d&c for 4 processors     3.427139 seconds
+    concurrent d&c for 8 processors     2.535506 seconds
+    concurrent d&c for 16 processors    2.280316 seconds
+
+Optimization level:-O3
+    Pure Graham scan:                   1.922075 seconds
+    concurrent d&c for 1 processor      1.950359 seconds
+    concurrent d&c for 2 processors     1.007212 seconds
+    concurrent d&c for 4 processors     0.504532 seconds
+    concurrent d&c for 8 processors     0.366861 seconds
+    concurrent d&c for 16 processors    0.358308 seconds

@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0088)http://courses.washington.edu/css503/2019q2/assignments/assignment-01/assignment-01.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CSS 503A (Spring 2019): Systems Programming</title>
+  
+  <meta http-equiv="last-modified" content="2019-06-03T17:13:39.857581">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="copyright" content="© 2013-2019 Systems Deployment, LLC">
+  <link rel="stylesheet" type="text/css" href="./CSS 503A (Spring 2019)_ Systems Programming_files/css503.css">
+  <link rel="icon" type="image/png" href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/systems-deployment-favicon.png">
+</head>
+
+<body>
+
+<a name="top"></a>
+
+  <div class="logo">
+    <a href="http://www.uwb.edu/css" target="_blank">
+      <img src="./CSS 503A (Spring 2019)_ Systems Programming_files/csslogo.jpg" alt="UWB and UW Seal" title="University of Washington | Bothell">
+    </a>
+  </div>
+  <hr class="logo">
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+
+<h1>Assignment 1: Convex Hull</h1>
+
+<p>
+  Original author: Munehiro Fukuda
+</p>
+<p>
+  Revisions 2019: Morris Bernstein
+</p>
+
+<h2>Background</h2>
+
+<p>
+  A
+  <a href="https://en.wikipedia.org/wiki/Simple_polygon" target="_blank">simple polygon</a>
+  is defined to be
+  <a href="https://www.mathopenref.com/polygonconvex.html" target="_blank">convex</a>
+  if the line segment between any pair of points inside the polygon is
+  fully contained by the polygon. Informally, the polygon is convex if
+  it matches the “rubber band” placed around its vertex points.
+  The
+  <a href="https://en.wikipedia.org/wiki/Convex_hull" target="_blank">convex hull</a>
+  of a set of points (in the plane) is the smallest
+  convex polygon that contains all the points.
+</p>
+
+<p>
+  Finding the convex hull is a seminal problem in the field of
+  <a href="https://en.wikipedia.org/wiki/Computational_geometry" target="_blank">computational geometry</a>
+  There are numerous applications, including computer graphics and
+  image analysis, robot motion planning (path finding), game theory,
+  epidemiology, compilers, etc.
+</p>
+
+<p>
+  The
+  <a href="https://en.wikipedia.org/wiki/Graham_scan" target="_blank">Graham scan algorithm</a>
+  solves the problem in two steps by first sorting the points with respect to
+  the angle each point makes with lowest point.  Then it does a
+  linear-time scan of the sorted points to determine whether each
+  point makes a right or left turn with respect to the next point.
+  The cost of sorting,
+  <code>O(n log n)</code><a name="text_1"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/assignment-01.html#footnote_1" class="footnote_link"><sup class="footnote">1</sup></a>,
+  dominates the computational complexity of the algorithm.
+</p>
+
+<p>
+  <a href="./CSS 503A (Spring 2019)_ Systems Programming_files/graham.gif" target="_blank">
+  <img src="./CSS 503A (Spring 2019)_ Systems Programming_files/graham.gif" height="400" width="400" alt="Graham scan animation" title="Graham Scan Animation">
+  </a>
+</p>
+
+<p>
+  Another algorithm uses a divide-and-conquer approach.  It takes
+  advantage of the fact that a convex hull is represented by an
+  ordered list of points to merge a pair of hulls in linear time.
+  By repeatedly dividing the points in half to get smaller subsets, we
+  can get a quicksort-like
+  <code>O(n log n)</code>
+  algorithm.
+</p>
+
+<p>
+  The merge operation works by finding the polygon with the lowest
+  point and dividing the other polygon into upper and lower chains.
+  The points of the lower chain cannot be in the merged hull and can
+  be immediately discarded.  The upper chain is necessarily sorted
+  with respect to the lowest point of the first polygon, so its points
+  can be merged with the first polygon in linear time.  A linear-time
+  Graham scan then finds the hull of the merged set of points.
+</p>
+
+
+<h2>Parallel Convex Hull</h2>
+
+<p>
+  You have been given a
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/src.tgz">C++ program</a>
+  that benchmarks the Graham scan
+  and divide-and-conquer algorithms.  Your task is to modify the
+  divide-and-conquer implementation to take advantage of the
+  multi-core architecture of modern machines.
+</p>
+
+<p>
+  Your strategy will be to
+  <em>fork</em>
+  your process and let the parent and child processes each process
+  half the set.  The child should then
+  <em>pipe</em>
+  its results back to the parent process.
+  The parent will then read the results from the child and perform the
+  merge.
+</p>
+
+<p>
+  The parent process should
+  <em>wait</em>
+  for the child to complete so that the parent can check
+  the exit status of the child process.
+  If there are any failures, the program should
+  <em>exit</em>
+  with a non-zero exit status (indicating failure).  If the program
+  fails for any reason, fix the problem (if it isn't transient) and
+  rerun the experiment.
+</p>
+
+<p>
+  To make it interesting, your test data should contain 10 million
+  points (but do not include the test data in the hand-in materials).
+</p>
+
+<p>
+  Determine the performance of the Graham scan algorithm versus
+  concurrent d&amp;c for 1, 2, 4, 8, and 16 "processors".
+  Use the
+  <code>README</code>
+  file to report your results.
+</p>
+
+
+<h2>Notes &amp; Hints</h2>
+
+<p>
+  While interesting, you don't really need to understand the
+  convex hull algorithm to complete the assignment.
+  Your instructor's
+  solution is only 55 lines, implemented in a separate
+  <code>#include</code>
+  file<a name="text_2"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/assignment-01.html#footnote_2" class="footnote_link"><sup class="footnote">2</sup></a>.
+  You don't need to modify any of the provided source.  Just create
+  the required
+  <code>#include</code>
+  files and compile with the right flags.
+</p>
+
+<p>
+  You can use the known-good Graham and non-concurrent d&amp;c
+  solutions to cross-check the correctness of your implementation.
+  A script to automate your testing is desirable.  Otherwise, how are
+  you going to convince your instructor that your solution is correct?
+</p>
+
+<p>
+  Report performance for your program compiled with optimization
+  levels
+  <code>-O0</code>
+  and
+  <code>-O3</code>.
+  Normally, since we are concerned with performance, we would compile
+  with maximum optimizations only, but this is an opportunity to see
+  how much code improvement the optimizer produces.
+</p>
+
+<p>
+  Use appropriate preprocessor definitions using the
+  <code>-D</code>
+  flag on the compile command.
+</p>
+
+<p>
+  Don't forget to include your
+  <code>BUILD</code>
+  and
+  <code>RUN</code>
+  scripts.
+</p>
+
+<p>
+  The tarball includes a pair of Python utility scripts.
+  <code>generate_data.py</code>
+  will generate random input data.
+  <code>plot.py</code>
+  can be used to generate
+  <a href="https://en.wikipedia.org/wiki/Scalable_Vector_Graphics" target="_blank"><code>svg</code></a>
+  image files that illustrate the data.
+</p>
+
+
+
+
+<h2>Footnotes</h2>
+
+<ul class="footnote_list">
+
+<li class="footnote"><a name="footnote_1"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/assignment-01.html#text_1">1</a>&nbsp;&nbsp;... where <code>n</code> is the number of points in the input set. There exist <a href="https://en.wikipedia.org/wiki/Output-sensitive_algorithm" target="_blank">output sensitive</a> algorithms that perform in <code>O(n log h)</code> where <code>h</code> is the number of points in the hull. Generally, <code>h &lt;&lt; n</code>.</li>
+<li class="footnote"><a name="footnote_2"></a><a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-01/assignment-01.html#text_2">2</a>&nbsp;&nbsp;The code uses <code>.inc</code> instead of <code>.h</code> because it's not really a header file.  <code>.h</code> and <code>.inc</code> are just conventions.</li>
+</ul>
+
+
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+</body></html>

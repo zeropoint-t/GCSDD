@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0088)http://courses.washington.edu/css503/2019q2/assignments/assignment-04/assignment-04.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CSS 503A (Spring 2019): Systems Programming</title>
+  
+  <meta http-equiv="last-modified" content="2019-06-03T17:13:40.226604">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="copyright" content="© 2013-2019 Systems Deployment, LLC">
+  <link rel="stylesheet" type="text/css" href="./Instruction_files/css503.css">
+  <link rel="icon" type="image/png" href="http://courses.washington.edu/css503/2019q2/assignments/assignment-04/systems-deployment-favicon.png">
+</head>
+
+<body>
+
+<a name="top"></a>
+
+  <div class="logo">
+    <a href="http://www.uwb.edu/css" target="_blank">
+      <img src="./Instruction_files/csslogo.jpg" alt="UWB and UW Seal" title="University of Washington | Bothell">
+    </a>
+  </div>
+  <hr class="logo">
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+
+<h1>Assignment 4: Remote Procedure Calls</h1>
+
+<p>
+  The
+  <em>Remote Procedure Call</em>
+  abstraction hides the complexity of communicating between a client
+  and server in a distributed application.
+</p>
+
+<p>
+  The objective is to make it look, as closely as possible, as if the
+  client application is simply calling an ordinary function in its own
+  process space.
+  Unfortunately, it is an imperfect ("leaky") abstraction because the client
+  code must deal with the multiple failure modes that may occur in a
+  distributed system.
+</p>
+
+<p>
+  RPCs consists of three parts.  A client-side library of function
+  defining the application-program interface, a
+  serialization/communication protocol and support library, and a
+  server-side set of handler functions.
+</p>
+
+<p>
+  Software development kits for implmenting RPCs typically include a
+  <em>Domain-Specific Language</em>
+  allowing the developer to describe the function parameters.
+  These DSLs are typically known as
+  <em>Data Definition Languages</em>.
+</p>
+
+<p>
+  The DDL takes a description of a function's arguments and return
+  values (in effect, a function declaration), and generates source
+  code for the client and source-code stubs for the server.
+</p>
+
+<p>
+  The client-side functions simply marshal their arguments and pass
+  them to a communication layer that transmits the arguments to the
+  server and unmarshalls the result returned from the server.  The
+  communication layer can be a pre-compiled library that is linked
+  into the client program.
+</p>
+
+<p>
+  The programmer writing the server (possibly but not necessarily the
+  same person responsible for writing the client-side application)
+  fills in the server-side stubs with the business logic for the
+  particular service.
+</p>
+
+<p>
+  The original RPC mechanism, now called
+  <a href="https://en.wikipedia.org/wiki/Open_Network_Computing_Remote_Procedure_Call" target="_blank"> ONC-RPC</a>,
+  was developed by Sun Microsystems as part of their Network File
+  System (NFS) project to create the original fileshare. NFS was
+  implemented partially in the kernel, so an NFS volume could be
+  mounted as if it were an ordinary filesystem.
+</p>
+
+<p>
+  With that for inspiration, your task is to implement a scaled-down
+  userland version of a network filesystem.  You will
+  <em>hand-roll</em>
+  the
+  service, defining the data exchange and making the necessary system
+  calls to exchange the data.  Do not use an RPC utility.
+</p>
+
+<p></p>
+  For the purposes of the assignment, don't worry about data
+  compression or encryption.
+<p></p>
+
+<p>
+  Simulate authentication (you are who you say you are) &amp;
+  authorization (you have the permission to do what you are asking)
+  using a 64-bit number as an "auth" token.
+  Normally, this would be provided by an credentialing service or
+  through some other suitable mechanism, but you may use
+  <code>getrandom(2)</code>
+  to generate a random number.
+</p>
+
+<p>
+  Use UDP to exchange information.
+  Since UDP is "unreliable", each request to the server should include
+  the auth token and a second 64-bit randomly-generated sequence
+  number.  Any response from the server should include the sequence
+  number to indicate which client request the server is responding
+  to.
+</p>
+
+<p>
+  The client should maintain a timeout on each request it makes to the
+  server.  The client library may retry once after a timeout.  If the second
+  request fails or fails to return any result, the client should
+  report failure (via the return value) to the application.
+</p>
+
+<p>
+  To avoid dealing with concurrency, you may assume the server handles
+  only a single request at a time.  Multiple concurrent requrests will
+  get queued up in the socket's listen queue.
+</p>
+
+<p>
+  You may start with this skeleton for the client side:
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-04/RemoteFileSystem-skel.h" target="_blank">RemoteFileSystem-skel.h</a> 
+</p>
+
+<p>
+  In your
+  <code>README</code>,
+  include a paragraph or two comparing the RPC and message-passing
+  concurrency abstractions (as implemented in this assignment and your
+  Sleeping Barbers solution).
+  Also include a brief discussion of how you would modify your server
+  and client library to handle concurrent requests.
+</p>
+
+<p>
+  Don't forget the
+  <code>BUILD</code>
+  script.
+</p>
+
+
+
+
+
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+</body></html>

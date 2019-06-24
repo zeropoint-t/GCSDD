@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0088)http://courses.washington.edu/css503/2019q2/assignments/assignment-03/assignment-03.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>CSS 503A (Spring 2019): Systems Programming</title>
+  
+  <meta http-equiv="last-modified" content="2019-06-03T17:13:40.140937">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="copyright" content="© 2013-2019 Systems Deployment, LLC">
+  <link rel="stylesheet" type="text/css" href="./Instruction_files/css503.css">
+  <link rel="icon" type="image/png" href="http://courses.washington.edu/css503/2019q2/assignments/assignment-03/systems-deployment-favicon.png">
+</head>
+
+<body>
+
+<a name="top"></a>
+
+  <div class="logo">
+    <a href="http://www.uwb.edu/css" target="_blank">
+      <img src="./Instruction_files/csslogo.jpg" alt="UWB and UW Seal" title="University of Washington | Bothell">
+    </a>
+  </div>
+  <hr class="logo">
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+
+<h1>Assignment 3: Standard I/O Library</h1>
+
+<p>
+  Original author: Munehiro Fukuda
+</p>
+
+<p>
+  Revisions 2019: Morris Bernstein
+</p>
+
+<p>
+  As we have seen in Lab 3, the operating system calls
+  <code>open</code>,
+  <code>close</code>,
+  <code>read</code>,
+  <code>write</code>,
+  <code>llseek</code>,
+  etc.
+  provide an effective interface to the filesystem, but have
+  significant limitations.  Performance and convenience can be
+  dramatically improved using a higher-level userland library that
+  provides buffering and data-formatting.
+  Furthermore, programs that use the language-defined standard library
+  are more likely to be portable across operating systems.
+</p>
+
+<p>
+  The standard I/O library of the C language is available to any C or
+  C++ program that includes the
+  <code>stdio.h</code>
+  (<code>cstdio</code>
+  in C++)
+  header file.
+  Since C predates the object-oriented paradigm, the
+  <code>FILE*</code>
+  object is passed in as the first argument to the various functions
+  that implement file operations, but it is fundamentally an operation
+  on an object.
+</p>
+
+<p class="with_list">
+ For this assignment, you will implement a class-based version of the
+ C standard I/O library.  The constructor will open the file, and the
+ destructor will close the file.
+</p>
+
+<p>
+  Since constructors and destructors don't return values, we have to
+  alter the semantics slightly: if an error occurs, throw an
+  exception.
+</p>
+
+<p></p>
+ Implement the following methods using only the underlying system
+ calls.
+ See the corresponding
+ <code>man</code>
+ pages.  Note that the file argument is implicit in the method call,
+ so we must alter the function signature slightly.
+<p></p>
+<ul>
+  <li>
+    <code>ferror</code>
+  </li>
+  <li>
+    <code>feof</code>
+  </li>
+  <li>
+    <code>fflush</code>
+  </li>
+  <li>
+    <code>fputc</code>
+  </li>
+  <li>
+    <code>fgetc</code>
+  </li>
+  <li>
+    <code>fgets</code>
+  </li>
+  <li>
+    <code>fputs</code>
+  </li>
+  <li>
+    <code>fseek</code>
+  </li>
+</ul>
+
+<p>
+  Do
+  <em>not</em>
+  use the C++ standard template library, C++ strings library, C
+  standard I/O library or C standard strings functions.
+  You may use
+  <code>malloc</code>
+  to allocate the buffer.
+</p>
+
+<p>
+  Behavior should be predictable even for files opened in read/write
+  mode.  For example, if you read
+  <code>ABC</code>
+  from the file, write
+  <code>XYZ</code>,
+  and then read
+  <code>GHI</code>,
+  the file should end up containing
+  <code>ABCXYZGHI</code>
+  <em>regardless</em>
+  of the buffering mode.
+  Similarly, writing
+  <code>ABCDEFGHI</code>,
+  repositioning the file pointer to the beginning of the file
+  ("rewinding") and
+  writing
+  <code>XYZ</code>
+  should leave
+  <code>XYZDEFGHI</code>
+  in the file  <em>regardless</em>
+  of the buffering mode.
+</p>
+
+<p>
+  Your test program should verify that writing to a read-only file is
+  an error; reading from a write-only file is an error; and that the
+  the code correctly handles the switch between reading and writing in
+  read/write mode.
+</p>
+
+<p>
+  Your implementation need not worry about thread-safety.
+</p>
+
+<p>
+  For the purposes of the assignment you only need to implement
+  the default
+  <code>FULL_BUFFER</code>
+  mode.
+  <code>setvbuf</code>
+  is unsupported.
+</p>
+
+<p>
+  <code>"a"</code>
+  and
+  <code>"a+"</code>
+  modes have complicated semantics and need not be implemented.
+</p>
+
+<p>
+  You may crash the program if any unsupported feature is called.
+  See
+  <a href="http://www.catb.org/jargon/html/N/nasal-demons.html" target="_blank">undefined behavior</a>.
+</p>
+
+<p>
+  An application using your library should
+  <code>#include "file.h"</code>
+  and link with
+  <code>file.o</code>
+  (produced by compiling
+  <code>file.cc</code>
+  with the
+  <code>-c</code>
+  flag.
+  Simulate this by putting your implementation and test program in
+  separate directories (use the -I flag when compiling your test
+  program).
+</p>
+
+<p>
+  Repeat the benchmarking of Lab 3 for your implementation.  This
+  means you will be creating two separate executable programs that use
+  your I/O library.
+</p>
+
+<p>
+  Skeletons have been provided:
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-03/file-skel.h" target="_blank">file-skel.h</a>
+  and
+  <a href="http://courses.washington.edu/css503/2019q2/assignments/assignment-03/file-skel.cc" target="_blank">file-skel.cc</a>.  You may
+  also reuse or cannibalize any of the work that you did for Lab 3.
+</p>
+
+<p>
+  For reference, a simplified version of
+  <code>fprintf</code>
+  has been provided in the skeleton code.
+</p>
+
+<p>
+  Don't forget the
+  <code>BUILD</code>
+  script and
+  <code>README</code>
+  files.
+</p>
+
+
+
+
+
+<div class="menu">
+  <p>
+    <a href="http://courses.washington.edu/css503/2019q2/index.html">Home</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/syllabus.html">Syllabus</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/lectures/index.html">Lecture Notes</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/index.html#assignments">Assignments</a>
+    |
+    <a href="http://courses.washington.edu/css503/2019q2/resources.html">Resources</a>
+    |
+    <a href="http://www.washington.edu/online/privacy" target="_blank">Privacy Policy</a>
+    |
+    <a href="http://www.washington.edu/online/terms" target="_blank">Terms of Use</a>
+  </p>
+</div>
+
+</body></html>

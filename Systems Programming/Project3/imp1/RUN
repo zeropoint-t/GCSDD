@@ -1,0 +1,29 @@
+#! /bin/bash
+
+./BUILD
+
+C_STD_OUT=c_std_result.dat
+UNIX_OUT=unix_result.dat
+
+rm -f $C_STD_OUT
+rm -f $UNIX_OUT
+
+size=1
+
+while [ $size -le 4096 ]
+do
+./main ./image.jpg $size | grep -A 1 "Unix" | grep "seconds" | \
+sed s/\\t// | sed s/seconds/$size/ >> $UNIX_OUT
+((size = size * 2))
+done
+
+size=1
+
+while [ $size -le 4096 ]
+do
+./main ./image.jpg $size | grep -A 1 "C standard" | grep "seconds" | \
+sed s/\\t// | sed s/seconds/$size/ >> $C_STD_OUT
+((size = size * 2))
+done
+
+gnuplot -persist -e "load \"gnuplot.txt\""

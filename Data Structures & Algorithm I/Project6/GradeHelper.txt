@@ -1,0 +1,54 @@
+Program Description:
+This program simulates a simple financial market charting platform where market(DataManager) 
+sends out data packets(DataPacket) to interested parties uisng an observer pattern.
+
+Subject: DataManagerInterface, DataManager
+Observer: DataObserverInterface, SMA, EMA, MACD
+
+
+Grading Criteria 
+• One abstract “Parent” object (e.g. “Creature”) 
+    o [1 Point] All instance variables private 
+        See DataObserverInterface.h
+    o [1 Point] Getters/setters as appropriate (enforce invariants)
+        See DataObserverInterface.h
+    o [1 Point] At least one overloaded constructor (call setter to enforce invariants) 
+        See DataObserverInterface.h
+    o [1 Point] At least one “pure virtual” function 
+        See DataObserverInterface.h
+    o [1 Point] At least one virtual function that is implemented in “Parent”
+        See DataObserverInterface.h - display()
+
+• Two separate non-abstract “Child” objects (e.g. “Robot” and “Bear”) 
+    o [1 Point] All instance variables private 
+        See EMA.h/.cpp & SMA.h/.cpp
+    o [1 Point] Getters/setters as appropriate (enforce invariants) 
+        See EMA.h/.cpp & SMA.h/.cpp
+    o [2 Point] Properly pass data to parent constructor(s) 
+        See EMA.h/.cpp & SMA.h/.cpp - constructors
+    o [2 Point] Make one Child a “friend class” of the other Child and have a function that makes use of the friend class’ private instance variables 
+        See EMA.h - template<typename U> friend class SMA;
+    o [2 Point] At least one Child must have at least one “friend function” 
+        See SMA is a friend of EMA
+    o [1 Point] Proper use of override 
+        See EMA.h/.cpp & SMA.h/.cpp - void update(DataPacket<T>& dp) override;
+    
+• One non-abstract “Grandchild” Object (e.g. “Robobear”) 
+    o [1 Point] All instance variables private
+        See MACD.h
+    o [1 Point] Getters/setters as appropriate (enforce invariants) 
+        See MACD.h/.cpp - MACD<T>::setPeriod(int32_t p1, int32_t p2)
+    o [2 Point] Properly pass data to parent constructor(s) 
+        See MACD.cpp -- constructors
+    o [2 Point] Override at least one function 
+        See MACD.h/.cpp
+    o [2 Point] Have at least one function that calls a specific parent’s function
+        See MACD.h/.cpp - SMA<T>::update(dp) & EMA<T>::update(dp)
+
+• Driver 
+    o [1 Point] Functional Positive Testing: Create an instance of each Child and Grandchild objects given valid values (passes invariant check) 
+        See main.cpp
+    o [1 Point] Functional Negative Testing: Attempt to create an instance of each Child and Grandchild objects given invalid values (does not pass invariant check – what should it do?) 
+        See main.cpp
+    o [6 Points] Driver should call each public method (including any public getter/setter)
+        See main.cpp

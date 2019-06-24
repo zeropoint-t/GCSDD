@@ -1,0 +1,20 @@
+
+Barbers and the remote file system using RPC has great resemblances in that barbers used wait & signal and RPC used sento & recvfrom.
+As I started exploring more similarities between these 2 approaches, I came to understand that condition variables/signal c
+ombinations in the barbers problem are just like sendto/scoket desctiptors as well. I feel that I can implement the barbers solution, 
+now using RPC/socket we practiced in assignment 4.
+
+I would modify the server in a few ways. One would be to spawn a new thread for each client connection as soon as the request comes in
+and the server goes back to the listen mode right way. Another modification would be to make it stateless
+and let the client handle the bookkeeping of the states. That way, a server can handle and proceed
+where it left off without mainining states.
+
+This course has been an eye opening for me personally and have never been so intellectually challenged before.
+
+Thank you for sharing your knowledge in such a manner that really taught me what I wanted to learn
+I am confident this will benefit me in my futrue carrer for years to come.
+
+Thanks again and hope to see you again soon,
+
+Tetsuya
+

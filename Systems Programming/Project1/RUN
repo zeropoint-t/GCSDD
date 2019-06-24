@@ -1,0 +1,43 @@
+#! /bin/bash
+
+./BUILD
+
+
+for i in 1 2 3 4 5
+do
+   echo "Welcome $i times"
+done
+
+echo ""
+echo "---------------------------------------------------------------"
+echo "------------------------Test Runs: FORK vs GRAHAM------------------------"
+echo "---------------------------------------------------------------"
+
+echo ""
+echo "----------1 Processor Test---------"
+./main 1 < data.txt
+
+echo ""
+echo "----------2 Processor Test---------"
+./main 2 < data.txt
+
+echo ""
+echo "----------4 Processor Test---------"
+./main 4 < data.txt
+
+echo ""
+echo "----------8 Processor Test---------"
+./main 8 < data.txt
+
+echo ""
+echo "----------16 Processor Test---------"
+./main 16 < data.txt
+
+# ./solution/BUILD_Graham
+
+# echo ""
+# echo "---------------------------------------------------------------"
+# echo "------------------------Test Runs: Graham------------------------"
+# echo "---------------------------------------------------------------"
+
+# ./main 1 10000000
